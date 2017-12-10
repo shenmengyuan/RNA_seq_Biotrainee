@@ -1,8 +1,10 @@
+[TOC]
+
 # 一个植物转录组项目的实战
 
->我们已经对转录组有了初步的了解，现在我们要开始项目实战。前面的数据下载、比对、定量，我们之前已经做过了，所以不在演示。直接从我们得到的count开始进行下面的差异分析与功能注释。
+原教程网址：<http://www.bio-info-trainee.com/2809.html>
 
-[TOC]
+>我们已经对转录组有了初步的了解，现在我们要开始项目实战。前面的数据下载、比对、定量，我们之前已经做过了，所以不再演示。直接从我们得到的count开始进行下面的差异分析与功能注释。
 
 ## 环境配置软件安装
 
@@ -35,10 +37,12 @@ unzip fastqc_v0.11.5.zip
 ### subread
 
 Version 1.5.3
+
 使用conda进行subread的安装：`conda install -c bioconda subread`，也可以使用下载安装包的方法进行安装，各有好处，使用安装包安装的好处是知道自己安装软件中有哪些应用，安装最新版本；直接用conda安装则无法判断，虽然他帮你把一些应用加到环境变量里。
 
 ### Salmon
 Salmon v0.8.2
+
 `conda install -c bioconda salmon`
 
 ### RSeQC
@@ -66,6 +70,7 @@ biocLite("AnnotationHub")
 biocLite('GenomicFeatures')
 biocLite("tximport")
 biocLite("clusterProfiler")
+biocLite("org.At.tair.db")
 biocLite("DOSE")
 ```
 
@@ -74,7 +79,9 @@ biocLite("DOSE")
 ## 读文章拿到测序数据
 
 数据来自于发表在Nature commmunication上的一篇文章 “Temporal dynamics of gene expression and histone marks at the Arabidopsis shoot meristem during flowerin”。原文用RNA-Seq的方式研究在开花阶段，芽分生组织在不同时期的基因表达变化。
+
 实验设计： 4个时间段（0,1,2,3），分别有4个生物学重复，一共有16个样品。
+
 ` tail -n +2 E-MTAB-5130.sdrf.txt | cut -f 32,36 |sort -u`
 
 
@@ -113,6 +120,7 @@ nohup wget ftp://ftp.ensemblgenomes.org/pub/plants/release-28/gtf/arabidopsis_th
 **不需要比对，直接对转录水平进行定量。**
 
 - 创建索引
+
   `salmon index -t Arabidopsis_thaliana.TAIR10.28.cdna.all.fa.gz -i athal_index_salmon`
 
 - 定量
@@ -197,146 +205,9 @@ samtools sort -O bam -@ 5  -o ${sample}_star.bam ${sample}_starAligned.out.sam
 
 **差异表达分析 **
 
-`slamon_DEG.R`
+`Deseq2_DEG.R`
 
-• Salmon quant文件转为表达矩阵 
-• 构造设计矩阵 
 • 使用DESeq2进行差异分析 
-• 使用run_DEG.R进行差异分析
-
----
-
-**以Salmon输出得到的计数文件为例：**
-- 得到基因名和转录本名字一一对应的数据框
-```R
-if(T){
-  library(AnnotationHub)
-  ah <- AnnotationHub()
-  ath <- query(ah,'thaliana')
-  ath_tx <- ath[['AH52247']]
-  columns(ath_tx)
-  k <- keys(ath_tx,keytype = "GENEID")
-  df <- select(ath_tx, keys=k, keytype = "GENEID",columns = "TXNAME")
-  tx2gene <- df[,2:1] 
-}
-```
-
-  `AnnotationHub`，顾名思义，是注释信息的中装站。通过它，能找到了几乎所有的注释资源。如果没有，你还可以根据已有的数据用它提供的函数进行构建。
-  官网：https://bioconductor.org/packages/release/bioc/html/AnnotationHub.html
-
-  说明书：[AnnotationHub: Access the AnnotationHub Web Service](http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub.html)
-  [AnnotationHub: AnnotationHub HOW TO's](http://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub-HOWTO.html)
-  [AnnotationHub: Creating An AnnotationHub Package](https://bioconductor.org/packages/release/bioc/vignettes/AnnotationHub/inst/doc/CreateAnAnnotationPackage.html)
-  [用Bioconductor对基因组注释](http://www.jianshu.com/p/ae94178918bc)
-
-
-```R
-# source("https://bioconductor.org/biocLite.R")
-# biocLite("AnnotationHub")
-# biocLite('GenomicFeatures')
-library(AnnotationHub)
-# 构造AnnotationHub对象
-ah <- AnnotationHub()
-ah
-```
-hub存着不同类型的数据，可以看到数据从哪里来(dataprovider)，以及有什么物种(species)，有什么类型的R数据对象可以返回(rdataclass)。只要查看dataprovider的内容，我们就可以更仔细地查看所有可用的数据提供者，就好像它是data.frame对象的列一样:
-```R
-unique(ah$dataprovider)
-```
-
-然后同样看下物种：
-```R
-head(unique(ah$species))
-```
-这也适用于其他类型的元数据。您可以在键入“ah$”之后，简单地按tab键来了解哪些类型的元数据可用。通过这种方式，您可以自己探索从命令行中在hub中存在的数据类型。此接口还允许您以编程方式访问hub，以提取符合特定标准集的数据。 
-
-要注意的另一种有价值的元数据类型是rdataclass:
-```{r}
-head(unique(ah$rdataclass))
-```
-rdataclass允许您查看中心将返回哪些类型的R对象。这类信息既是筛选结果的一种手段，也是一种探索和了解项目中广泛可用的注释对象的方法。
-现在里面的数据类型还不多，但是随着时间的推移，它应该会增长，会支持更多不同类型的注释对象。 
-
-```R
-display(ah)
-# shiny页面显示的数据存在C:\Users\Shenmy\Documents\AppData\.AnnotationHub\annotationhub.sqlite3数据库中
-# 临时文件存放地址:
-ah@cache
-```
-
-```R
-ath <- query(ah,'thaliana')
-# query(ah, "Arabidopsis thaliana")
-# 下载对应的id对应文件
-ath_tx <- ath[['AH52247']] # 只需要下载一次
-ath_org <- ath[['AH53758']] # 先下载，后面还会用到
-# loading from cache ‘C:/Users/Shenmy/Documents/AppData/.AnnotationHub/58985’
-keytypes(ath_tx)
-# columns(orgdb)
-```
-
-```R
-k <- keys(ath_tx,keytype = "GENEID")
-head(k)
-```
-```R
-## 根据GENEID来从数据库中查找到对应的TXNAME(转录本)
-df <- select(ath_tx, keys=k, keytype = "GENEID",columns = "TXNAME")
-tx2gene <- df[,2:1] # TXID在前， GENEID在后
-```
-
-- 构造设计矩阵
-```{shell}
-wget http://www.ebi.ac.uk/arrayexpress/files/E-MTAB-5130/E-MTAB-5130.sdrf.txt
-tail -n +2 E-MTAB-5130.sdrf.txt | cut -f 32,36 |sort -u  >group.txt
-```
-
-```R
-group_info <- read.table('group.txt') 
-group_info[,2] <- paste0('Day',group_info[,2])
-rownames(group_info) <- group_info[,1]
-group_info <- group_info[,c(2,1)]
-group_list <- group_info[,1]
-write.table(group_info,file='group_info.txt',quote = F,sep = '\t',row.names = T)
-```
-
-
-- 使用tximport导入quant数据
-  使用Salmon进行定量是对转录本进行定量的，但我们是想要看基因的表达量，这里就需要将转录本的count转为基因的。`tximport`函数可以将salmon输出的count文件合并为
-```R
-# 指定quant count文件位置
-dir <- "D:/Biotrainee/rna_seq/my_results"
-list.files(dir)
-sample <- paste0("ERR1698",seq(194,209),"_quant")
-files <- file.path(dir,"quant_salmon",sample,"quant.sf")
-names(files) <- paste0("ERR1698",seq(194,209))
-all(file.exists(files))
-
-# install.packages("readr")
-# install.packages("rjson")
-# biocLite("tximport")
-library("tximport")
-library("readr")
-library("rjson")
-txi <- tximport(files, type = "salmon", tx2gene = tx2gene)
-names(txi)
-head(txi$length,n=2)
-head(txi$counts,n=2)
-```
-
-为了使用Jimmy的差异分析软件，我们要把**表达矩阵**输出：
-```R
-library("DESeq2")
-# 读入设计矩阵
-sampleTable <- data.frame(condition = group_list )
-rownames(sampleTable) <- colnames(txi$counts)
-# 使用DESeqDataSetFromTximport函数构造DESeq2对象
-dds <- DESeqDataSetFromTximport(txi, sampleTable, ~condition)
-# 输出表达矩阵
-write.table(assay(dds),file = "exprSet.txt",quote = F)
-```
-
-#### 常规分析
 
 ```R
 ## 数据过滤
@@ -356,7 +227,7 @@ res_Day1_Day0=as.data.frame(resOrdered)
 下载Jimmy的一步法差异分析脚本
 
 ```shell
-wget https://raw.githubusercontent.com/jmzeng1314/my-R/master/DEG_scripts/run_DEG.R
+# wget https://raw.githubusercontent.com/jmzeng1314/my-R/master/DEG_scripts/run_DEG.R
 # wget https://raw.githubusercontent.com/jmzeng1314/my-R/master/DEG_scripts/tair/exprSet.txt
 # wget https://raw.githubusercontent.com/jmzeng1314/my-R/master/DEG_scripts/tair/group_info.txt
 # 下载以上表达矩阵、分组矩阵和代码，进行运行：

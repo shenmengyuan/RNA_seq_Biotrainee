@@ -203,7 +203,7 @@ samtools sort -O bam -@ 5  -o ${sample}_star.bam ${sample}_starAligned.out.sam
 ## 差异表达分析
 ### 设计矩阵和表达矩阵
 
-**差异表达分析 **
+差异表达分析 
 
 `Deseq2_DEG.R`
 

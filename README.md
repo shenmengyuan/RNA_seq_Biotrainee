@@ -365,7 +365,7 @@ Rscript run_DEG.R -e exprSet.txt -g group_info.txt -c 'Day1-Day0' -s counts  -m 
 
 ## 功能分析
 
-**差异分析结果的功能注释 **
+差异分析结果的功能注释：
 
 `function_DEG.R`
 

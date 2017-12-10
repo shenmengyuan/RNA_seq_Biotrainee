@@ -241,6 +241,10 @@ Rscript run_DEG.R -e exprSet.txt -g group_info.txt -c 'Day1-Day0' -s counts  -m 
 `function_DEG.R`
 
 • 导入差异分析结果，判断显著差异基因 
+
 • 画个火山图看看挑选的差异基因合理与否 
+
 • 显著差异基因的GO/KEGG注释 
+
 • OrgDb类型注释数据学习，了解基因注释原理其实是ID转换
+

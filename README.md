@@ -1,6 +1,6 @@
 [TOC]
 
-# 一个植物转录组项目的实战
+# 实战练习：差异表达分析与功能分析
 
 原教程网址：<http://www.bio-info-trainee.com/2809.html>
 
@@ -224,6 +224,8 @@ res_Day1_Day0=as.data.frame(resOrdered)
 
 ### 一步法差异分析
 
+原教程网址：<https://github.com/jmzeng1314/my-R/tree/master/DEG_scripts>
+
 下载Jimmy的一步法差异分析脚本
 
 ```shell
@@ -247,4 +249,18 @@ Rscript run_DEG.R -e exprSet.txt -g group_info.txt -c 'Day1-Day0' -s counts  -m 
 • 显著差异基因的GO/KEGG注释 
 
 • OrgDb类型注释数据学习，了解基因注释原理其实是ID转换
+
+### 参考资料
+
+- DESeq2官网说明书：[Analyzing RNA-seq data with DESeq2](http://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- 生信菜鸟团转录组实战系列：[一个植物转录组项目的实战](http://www.bio-info-trainee.com/2809.html)
+- github 转录组教程：[Differential Gene Expression using RNA-Seq (Workflow)](https://github.com/twbattaglia/RNAseq-workflow)
+- 生信技能树论坛转录组入门：[RNA-seq基础入门传送门](http://www.biotrainee.com/thread-1750-1-1.html)
+- [Jimmy一步法差异分析](https://github.com/jmzeng1314/my-R/tree/master/DEG_scripts)
+- [Bioconductor的workflows](http://www.bioconductor.org/help/workflows/)
+  - [RNA-Seq workflow: gene-level exploratory analysis and differential expression](http://www.bioconductor.org/help/workflows/rnaseqGene/)
+  - [RNA-seq analysis is easy as 1-2-3](http://www.bioconductor.org/help/workflows/RNAseq123/)
+  - [Gene Expression Normalization Workflow](http://www.bioconductor.org/help/workflows/ExpressionNormalizationWorkflow/)
+  - [Gene-level RNA-seq differential expression and pathway analysis](http://www.bioconductor.org/help/workflows/RnaSeqGeneEdgeRQL/) 
+- 《RNA-seq Data Analysis-A Practical Approach》
 

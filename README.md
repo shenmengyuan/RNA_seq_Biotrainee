@@ -326,5 +326,7 @@ Rscript run_DEG.R -e exprSet.txt -g group_info.txt -c 'Day1-Day0' -s counts  -m 
   - [RNA-seq analysis is easy as 1-2-3](http://www.bioconductor.org/help/workflows/RNAseq123/)
   - [Gene Expression Normalization Workflow](http://www.bioconductor.org/help/workflows/ExpressionNormalizationWorkflow/)
   - [Gene-level RNA-seq differential expression and pathway analysis](http://www.bioconductor.org/help/workflows/RnaSeqGeneEdgeRQL/) 
+  - [From reads to genes to pathways: differential expression analysis of RNA-Seq experiments using Rsubread and the edgeR quasi-likelihood pipeline](https://bioconductor.org/help/workflows/RnaSeqGeneEdgeRQL/)
 - 《RNA-seq Data Analysis-A Practical Approach》
+
 

@@ -22,8 +22,10 @@ library(DESeq2)
 library(edgeR)
 
 # 将表达矩阵和设计矩阵导入R
-exprSet_file <-  "C:\\Users\\Shenmy\\Desktop\\2017-12-10\\exprSet.txt"
-group_info_file <- "C:\\Users\\Shenmy\\Desktop\\2017-12-10\\group_info.txt"
+# exprSet_file <-  "C:\\Users\\Shenmy\\Desktop\\2017-12-10\\exprSet.txt"
+# group_info_file <- "C:\\Users\\Shenmy\\Desktop\\2017-12-10\\group_info.txt"
+exprSet_file <-  "https://raw.githubusercontent.com/shenmengyuan/RNA_seq_Biotrainee/master/data/exprSet.txt"
+group_info_file <- "https://raw.githubusercontent.com/shenmengyuan/RNA_seq_Biotrainee/master/data/group_info.txt"
 exprSet <- read.table(exprSet_file, stringsAsFactors = F, header = T)
 group_info <- read.table(group_info_file, stringsAsFactors = F, header = T)
 head(group_info)

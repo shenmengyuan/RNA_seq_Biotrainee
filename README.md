@@ -2,95 +2,144 @@
 
 # 实战练习：差异表达分析与功能分析
 
-原教程网址：<http://www.bio-info-trainee.com/2809.html>
 
->我们已经对转录组有了初步的了解，现在我们要开始项目实战。前面的数据下载、比对、定量，我们之前已经做过了，所以不再演示。直接从我们得到的count开始进行下面的差异分析与功能注释。
+##### Mengyuan Shen (2017/12/23)
 
-## 环境配置软件安装
+## 0 写在前面
+
+各位小伙伴在生信技能树的两天两夜基础培训课程后，相信大家已经对转录组有了初步的了解。现在我们要开始项目实战，从数据下载、比对、定量到差异分析与功能注释，下面我会一步一步演示给大家看。
+
+## 1 环境配置软件安装
 
 关于环境配置这里不在多说，在之前的课程里我们都有自己处理数据的计算机或者服务器了。现在只需要安装我们需要的软件即可。
 
-```powershell
+```shell
+# 创建一个专门安装软件的文件夹
 mkdir Biosoft & cd Biosoft 
 ```
 
-- 软件列表
-  - git/notepad++   编程基础工具
-  - fastqc\RSeQC  质控
-  - salmon
-  - subread
-  - R\Rstudio 统计、画图、后续分析
+### 1.1 软件列表
 
+-  Miniconda (软件管理器，可一键安装生信软件，类似各种软件管家；)
+-  git (可以用来下载GitHub上的软件；管理分享自己代码；windows上安装可以用git bash学习Linux的一些基本操作；)
+-  notepad++ (代码编辑器，类似的还有editplus、Sublime)
+-  fastqc\RSeQC  (高通量测序质控软件)
+-  salmon (不需要比对的定量软件)
+-  subread(史上最快的转录组流程，比对+定量)
+-  R\Rstudio (统计、画图；用于后续分析与功能分析)
 
-### fastqc 
+本实战练习要求：在**服务器**上安装：Miniconda/fastqc/salmon/subread 。在**Windows**上安装：git/notepad++/R/Rstudio 。下面是几个软件的安装代码，以供参考：
+
+### 1.2 Minconda
+
 ```shell
-cd /mnt/d/Software/Biosoft
-mkdir fastqc &&  cd fastqc
-wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
-# curl: http://www.bioinformatics.babraham.ac.uk/projects/fastqc/ 
-unzip fastqc_v0.11.5.zip
-# 中间要安装unzip和java，根据系统提示安装，一般是sudo apt install后加软件名。
+# 下载安装包（Linux版本）
+wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+# 也可以在清华镜像下载：https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/ 
+# wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+# 直接安装,一路yes即可
+bash Miniconda3-latest-Linux-x86_64.sh
+
+# 添加生信软件包下载频道
+conda config --add channels conda-forge
+conda config --add channels defaults
+conda config --add channels r
+conda config --add channels bioconda
+
+# 下面是清华的频道镜像：https://mirrors.tuna.tsinghua.edu.cn/help/anaconda/
+# 据说有时候不稳定，大家可以尝试下：
+# conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+# conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+# conda config --set show_channel_urls yes
+# conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+# conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/
+# conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/
+# conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/menpo/
 ```
 
-`conda install -c bioconda fastqc=0.11.5`进行安装也可以。
+上面频道的添加大家也可以**洲更**写的指导说明，也可以自己尝试下，该软件的安装并不难。Minconda3会自带Python3.6，所以大家不用再特地安装Python了。
 
-### subread
+### 1.3 fastqc
+
+- conda安装
+
+  `conda install -c bioconda fastqc=0.11.5`
+
+- 自己下载安装包安装
+  ```shell
+  mkdir fastqc &&  cd fastqc
+  wget http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
+  # curl: http://www.bioinformatics.babraham.ac.uk/projects/fastqc/ 
+  unzip fastqc_v0.11.5.zip
+  # 中间要安装unzip和java，根据系统提示安装，一般是sudo apt install后加软件名。
+  ```
+
+### 1.4 subread
 
 Version 1.5.3
 
-使用conda进行subread的安装：`conda install -c bioconda subread`，也可以使用下载安装包的方法进行安装，各有好处，使用安装包安装的好处是知道自己安装软件中有哪些应用，安装最新版本；直接用conda安装则无法判断，虽然他帮你把一些应用加到环境变量里。
+跟上面fastqc软件一样，可以使用conda进行subread的安装：`conda install -c bioconda subread`，也可以使用下载安装包的方法进行安装，各有好处，使用安装包安装的好处是知道自己安装软件中有哪些应用，安装最新版本；直接用conda安装则无法判断，虽然他帮你把一些应用加到环境变量里。
 
-### Salmon
+### 1.5 Salmon
+
 Salmon v0.8.2
 
 `conda install -c bioconda salmon`
 
-### RSeQC
-`pip install RSeQC`
+### 1.6 RSeQC
+
+RSeQC 是依赖于python的，直接使用 pip 进行安装: `pip install RSeQC`
 
 官网：[RSeQC: An RNA-seq Quality Control Package](http://rseqc.sourceforge.net/)
 
 中文版可以看：[高通量测序质控及可视化工具包RSeQC](http://mp.weixin.qq.com/s/zKXhy6Vhli1IQdWG8E7uwg)
 
-### R包
+### 1.7 R包
 
 ```R
-install.packages("ggplot2")
-install.packages("optparse")
-install.packages("UpSetR")
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("readr")
-install.packages("rjson") 
+install.packages("tidyverse") ; library(tidyverse)
+install.packages("optparse") ; library(optparse)
+install.packages("UpSetR") ; library(UpSetR)
+install.packages("rjson") ; library(rjson)
+
 source("https://bioconductor.org/biocLite.R")
-biocLite('limma')
-biocLite('DESeq2')
-biocLite('edgeR')
-biocLite("AnnotationHub")
-biocLite('GenomicFeatures')
-biocLite("tximport")
-biocLite("clusterProfiler")
-biocLite("org.At.tair.db")
-biocLite("DOSE")
+options(BioC_mirror="http://mirrors.ustc.edu.cn/bioc/")
+biocLite("DESeq2") ; library(DESeq2)
+biocLite('edgeR') ; library(edgeR)
+biocLite('limma') ; library(limma)
+biocLite("clusterProfiler") ; library(clusterProfiler)
+biocLite("DOSE") ; library(DOSE)
+biocLite("KEGG.db") ; library(KEGG.db)
+biocLite("org.At.tair.db") ; library(org.At.tair.db)
+biocLite("pheatmap") ; library(pheatmap)
+biocLite("RColorBrewer") ; library(RColorBrewer)
+biocLite("AnnotationHub") ; library(AnnotationHub)
+biocLite('GenomicFeatures') ; library(GenomicFeatures)
+biocLite("tximport") ; library(tximport)
 ```
 
 一定要提取安装好，保证以上代码正常运行；
 
-## 读文章拿到测序数据
 
-数据来自于发表在Nature commmunication上的一篇文章 “Temporal dynamics of gene expression and histone marks at the Arabidopsis shoot meristem during flowerin”。原文用RNA-Seq的方式研究在开花阶段，芽分生组织在不同时期的基因表达变化。
+
+## 2 读文章拿到测序数据
+
+数据来自于发表在Nature commmunication上的一篇文章 “[**Temporal dynamics of gene expression and histone marks at the Arabidopsis shoot meristem during flowerin**](https://www.nature.com/articles/ncomms15120)”。原文用RNA-Seq的方式研究在开花阶段，芽分生组织在不同时期的基因表达变化。
 
 实验设计： 4个时间段（0,1,2,3），分别有4个生物学重复，一共有16个样品。
 
-` tail -n +2 E-MTAB-5130.sdrf.txt | cut -f 32,36 |sort -u`
+### 2.1 测序数据
 
-
-### 测序数据
 ```shell
 # 创建一个文件夹，用来存放FASTQ文件（公司返回的原始数据）
 mkdir -p rna_practice/data/fastq
+
 # 获取样本信息
 wget http://www.ebi.ac.uk/arrayexpress/files/E-MTAB-5130/E-MTAB-5130.sdrf.txt
+tail -n +2 E-MTAB-5130.sdrf.txt | cut -f 32,36 |sort -u
+
+# 下载数据
 # fastq文件下载链接在第几列
 # head -n1 E-MTAB-5130.sdrf.txt | tr '\t' '\n' | nl | grep URI
 # 根据上述返回数字，获取文件第33列，然后下载fastq文件
@@ -99,7 +148,8 @@ wget http://www.ebi.ac.uk/arrayexpress/files/E-MTAB-5130/E-MTAB-5130.sdrf.txt
 perl -alne 'if(/.*(ftp:.*gz).*/){print "nohup wget $1 &"}' E-MTAB-5130.sdrf.txt >fq_data_download.sh
 bash fq_data_download.sh
 ```
-### 参考基因组
+### 2.2 参考基因组
+
 ```powershell
 # 创建文件夹用来放置参考基因组或注释文件
 mkdir -p rna_practice/data/ref
@@ -108,14 +158,26 @@ nohup wget ftp://ftp.ensemblgenomes.org/pub/plants/release-28/fasta/arabidopsis_
 nohup wget ftp://ftp.ensemblgenomes.org/pub/plants/release-28/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.28.dna.genome.fa.gz &
 nohup wget ftp://ftp.ensemblgenomes.org/pub/plants/release-28/gff3/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.28.gff3.gz &
 nohup wget ftp://ftp.ensemblgenomes.org/pub/plants/release-28/gtf/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.28.gtf.gz &
+
+# 使用nohup &可以将任务放置后台运行，可以关闭远程控制端
 ```
-## 序列比对及基因定量
-### 原文的流程
+
+
+##  3 序列比对及基因定量
+
+### 3.1 原文的流程
+
 `TopHat -> SummarizeOverlaps -> Deseq2 -> AmiGO`，其中比对的参考基因组为**TAIR10 ver.24** ，并且屏蔽了ribosomal RNA regions (2:3471–9557; 3:14,197,350–14,203,988)。**Deseq2**只计算至少在一个时间段的FPKM的count > 1 的基因。
 
 >Next generation sequencing (NGS) reads were mapped to Arabidopsis thaliana reference transcriptome TAIR10 ver. 24, with ribosomal RNA regions (2:3471–9557; 3:14,197,350–14,203,988) masked, using **TopHat 2.0.13 **(no-mixed alignments; up to 20 secondary alignments; no novel junctions)61. Counts of NGS reads covering transcripts were computed using the function **summarizeOverlaps62** in R. Expressed genes were defined as those having the value of FPKM>1 at least at one time point. Read counts were submitted to differential gene expression analysis in **Deseq2** (default parameters, FDR<0.05)63. Regularized logarithms of read count computed by Deseq2, denoted by rlog, were used for the analysis of relationships between gene expression level and histone modifications signal.
 
-### Salmon流程
+
+
+### 3.2 实战流程
+
+![](D:\Biotrainee\rna_seq\RNA_seq_Biotrainee\pic\rnaseq_workflow.png)
+
+#### 3.2.1 Salmon流程
 
 **不需要比对，直接对转录水平进行定量。**
 
@@ -142,7 +204,8 @@ done
 ```
 ```nohup bash quant_salmon.sh &```
 
-### subread流程
+#### 3.2.2  subread流程
+
 - 创建索引
 ```
 gunzip Arabidopsis_thaliana.TAIR10.28.dna.genome.fa.gz
@@ -178,8 +241,8 @@ nohup $featureCounts/featureCounts  -T 5 -p -t exon -g gene_name -a $gtf -o  $co
 nohup $featureCounts/featureCounts  -T 5 -p -t exon -g gene_id -a $gtf -o  $count/counts_id.txt   *.bam &
 ```
 
+#### 3.2.3 其他比对软件
 
-### 其他比对软件
 ```shell
 # hisat
 hisat -p 5 -x $hisat2_mm10_index -1 $fq1 -2 $fq2 -S $sample.sam 2>$sample.hisat.log
@@ -200,8 +263,9 @@ samtools sort -O bam -@ 5  -o ${sample}_star.bam ${sample}_starAligned.out.sam
 ```
 也可以使用`HTseq`进行计数。
 
-## 差异表达分析
-### 设计矩阵和表达矩阵
+## 4 差异表达分析
+
+### 4.1 设计矩阵和表达矩阵
 
 差异表达分析 
 
@@ -222,7 +286,7 @@ resOrdered <- res[order(res$padj),]
 res_Day1_Day0=as.data.frame(resOrdered)
 ```
 
-### 一步法差异分析
+### 4.2 一步法差异分析
 
 原教程网址：<https://github.com/jmzeng1314/my-R/tree/master/DEG_scripts>
 
@@ -236,7 +300,7 @@ res_Day1_Day0=as.data.frame(resOrdered)
 Rscript run_DEG.R -e exprSet.txt -g group_info.txt -c 'Day1-Day0' -s counts  -m DESeq2
 ```
 
-## 功能分析
+## 5 功能分析
 
 差异分析结果的功能注释：
 
@@ -250,7 +314,7 @@ Rscript run_DEG.R -e exprSet.txt -g group_info.txt -c 'Day1-Day0' -s counts  -m 
 
 • OrgDb类型注释数据学习，了解基因注释原理其实是ID转换
 
-### 参考资料
+## 6 参考资料
 
 - DESeq2官网说明书：[Analyzing RNA-seq data with DESeq2](http://www.bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
 - 生信菜鸟团转录组实战系列：[一个植物转录组项目的实战](http://www.bio-info-trainee.com/2809.html)

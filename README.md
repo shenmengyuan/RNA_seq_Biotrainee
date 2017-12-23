@@ -4,7 +4,7 @@
 
 ##### Mengyuan Shen (2017/12/23)
 
-![logo](./pic/icon-1.png)
+![logo](./pic/icon-1.jpg)
 
 ## 0 写在前面
 

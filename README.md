@@ -2,8 +2,9 @@
 
 # 实战练习：差异表达分析与功能分析
 
-
 ##### Mengyuan Shen (2017/12/23)
+
+![](pic\icon-1.png)
 
 ## 0 写在前面
 
@@ -175,7 +176,7 @@ nohup wget ftp://ftp.ensemblgenomes.org/pub/plants/release-28/gtf/arabidopsis_th
 
 ### 3.2 实战流程
 
-![](D:\Biotrainee\rna_seq\RNA_seq_Biotrainee\pic\rnaseq_workflow.png)
+![](pic\rnaseq_workflow.png)
 
 #### 3.2.1 Salmon流程
 
